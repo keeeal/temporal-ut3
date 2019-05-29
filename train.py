@@ -18,7 +18,7 @@ def self_play(player, games=1, alpha=0.2, epsilon=0.2, display=False):
             action, v_prime = player.get_action_and_value(game, epsilon)
 
             # update the value of the current state
-            state = torch.tensor([game.get_state()])
+            state = torch.tensor([game.get_state()]).to(player.device)
             value = player.model(state)
             value = value + alpha * (v_prime - value)
             data += [(s, value) for s in game.get_symmetries()]
@@ -117,7 +117,7 @@ def main(learn_rate, alpha, epsilon, seed=None):
     print(model, 'on', device, 'using', optimr)
 
     # make players
-    model_player = ModelPlayer(model)
+    model_player = ModelPlayer(model, device)
     random_player = RandomPlayer()
 
     # keep track of the best model
