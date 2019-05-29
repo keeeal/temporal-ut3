@@ -11,22 +11,35 @@ Temporal difference (TD) learning is a reinforcement learning algorithm trained 
 
 ## How to use
 
+### Training
+
+To begin training:
+
 ```bash
 python train.py
 ```
 
-or set the learning hyperparameters using the following arguments:
+or set the learning hyperparameters using any of the optional arguments:
 
 ```bash
-python train.py [--lr LEARN_RATE] [--a ALPHA] [--e EPSILON]
+python train.py --lr LEARN_RATE --a ALPHA --e EPSILON
 ```
+
+### Playing
+
+You can play against a trained model using
+
+```bash
+python player.py --params path/to/parameters.params
+```
+
+If no parameters are provided, the opponent will make moves randomly.
 
 ## Experiments
 
 Coming soon.
 
 ## To-do
- - Write human player class to allow playing against the bot.
  - [Scale the value of terminal results by the game length to prefer shorter games](https://medium.com/oracledevs/lessons-from-alphazero-connect-four-e4a0ae82af68).
  - Implement UT3 neural network in other frameworks, eg: TensorFlow.
  - Make asynchronous, i.e. do self-play, neural net training and model comparison in parallel.
