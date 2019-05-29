@@ -1,4 +1,4 @@
-# temporal-ut3
+# TemporalUT3
 Temporal difference learning for ultimate tic-tac-toe.
 
 ## What is ultimate tic-tac-toe?
@@ -26,7 +26,8 @@ python train.py [--lr LEARN_RATE] [--a ALPHA] [--e EPSILON]
 Coming soon.
 
 ## To-do
- - [Scale the value of terminal results by the game length to prefer shorter games.](https://medium.com/oracledevs/lessons-from-alphazero-connect-four-e4a0ae82af68).
+ - Write human player class to allow playing against the bot.
+ - [Scale the value of terminal results by the game length to prefer shorter games](https://medium.com/oracledevs/lessons-from-alphazero-connect-four-e4a0ae82af68).
  - Implement UT3 neural network in other frameworks, eg: TensorFlow.
  - Make asynchronous, i.e. do self-play, neural net training and model comparison in parallel.
 
