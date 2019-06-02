@@ -67,10 +67,14 @@ def play(params=None, display=True):
 
     if params:
         from model import Model
-        device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
-        model = Model().to(device)
-        if torch.cuda.device_count() >= 1: model = torch.nn.DataParallel(model)
-        model.load_state_dict(torch.load(params))
+        model = Model()
+        device = torch.device('cpu')
+        if torch.cuda.is_available():
+            device = torch.device('cuda')
+            model.to(device)
+            if torch.cuda.device_count() >= 1:
+                model = torch.nn.DataParallel(model)
+            model.load_state_dict(torch.load(params))
         opponent = ModelPlayer(model, device)
     else:
         opponent = RandomPlayer()
