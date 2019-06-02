@@ -62,10 +62,11 @@ class Game:
         if board is None: board = self.macro
         return board.all()
 
-    def is_over(self, player=1):
-        if self.is_win(player): return 1.
-        if self.is_win(-player): return self.eps
-        if self.is_full(): return .5
+    def is_over(self, player=1, board=None):
+        if board is None: board = self.macro
+        if self.is_win(player, board): return 1.
+        if self.is_win(-player, board): return self.eps
+        if self.is_full(board): return .5
         return 0.
 
     def execute_move(self, move, player=1):

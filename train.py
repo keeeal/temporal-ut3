@@ -6,6 +6,7 @@ from progress.bar import Bar
 from game import Game
 from model import Model
 from player import *
+from evaluate import evaluate
 
 def self_play(player, games=1, alpha=0.2, epsilon=0.2, display=False):
     data = []
@@ -36,32 +37,6 @@ def self_play(player, games=1, alpha=0.2, epsilon=0.2, display=False):
             game.flip()
 
     return data
-
-def compare(player_i, player_j, games=2, display=False):
-    score = {player_i:0, player_j:0, None:0}
-
-    for n in Bar('Evaluating').iter(range(games)):
-        game = Game()
-
-        # choose starting player
-        player = player_i if n < games/2 else player_j
-
-        for m in count():
-            if display: game.display()
-            action = player.get_action(game)
-            game.execute_move(action)
-            end_value = game.is_over()
-
-            if end_value:
-                if display: game.display()
-                winner = player if end_value == 1 else None
-                score[winner] += 1
-                break
-
-            game.flip()
-            player = player_j if player is player_i else player_i
-
-    return score[player_i], score[None], score[player_j]
 
 def batches(data, n):
     l = len(data)
@@ -155,7 +130,7 @@ def main(learn_rate, alpha, epsilon, seed=None):
         # evaluate against random player
         print()
         start = time.time()
-        score = compare(model_player, random_player, 100)
+        score = evaluate(model_player, random_player, 100)
         print('Time taken:', hms(time.time() - start))
         print('%d wins, %d draws, %d losses' % score)
 

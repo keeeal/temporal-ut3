@@ -8,6 +8,7 @@ class ModelPlayer:
         self.device = device
 
     def get_action(self, game, epsilon=0):
+        self.model.eval()
         return self.get_action_and_value(game, epsilon)[0]
 
     def get_action_and_value(self, game, epsilon=0):
@@ -38,6 +39,18 @@ class RandomPlayer:
     def get_action(self, game):
         return random.choice(game.get_valid_actions())
 
+class GreedyPlayer:
+    def get_action(self, game):
+        actions = game.get_valid_actions()
+        random.shuffle(actions)
+
+        for action in actions:
+            g = deepcopy(game).execute_move(action)
+            u = tuple(int(i/game.n) for i in action)
+            if g.is_win(board=g.get_microboard(u)): return action
+
+        return random.choice(actions)
+
 class HumanPlayer:
     def get_action(self, game):
         actions = game.get_valid_actions()
@@ -51,56 +64,3 @@ class HumanPlayer:
             print('Invalid input.')
 
         return action
-
-def ask(question):
-    hint = ''
-    while True:
-        answer = input(question + hint + '\n').lower()
-        if answer == 'y' or answer == 'yes': return True
-        if answer == 'n' or answer == 'no': return False
-        hint = ' (y/n)'
-
-def play(params=None, display=True):
-    from game import Game
-    game = Game()
-    human = HumanPlayer()
-
-    if params:
-        from model import Model
-        model = Model()
-        device = torch.device('cpu')
-        if torch.cuda.is_available():
-            device = torch.device('cuda')
-            model.to(device)
-            if torch.cuda.device_count() >= 1:
-                model = torch.nn.DataParallel(model)
-            model.load_state_dict(torch.load(params))
-        opponent = ModelPlayer(model, device)
-    else:
-        opponent = RandomPlayer()
-
-    # choose starting player
-    player = human if ask('Would you like to go first?') else opponent
-
-    while True:
-        if display: game.display()
-        action = player.get_action(game)
-        game.execute_move(action)
-        end_value = game.is_over()
-
-        if end_value:
-            if display: game.flip().display()
-            if player is human:
-                print('You won!')
-            else:
-                print('You lost.')
-            break
-
-        game.flip()
-        player = opponent if player is human else human
-
-if __name__ == '__main__':
-    import argparse
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--params', default=None)
-    play(**vars(parser.parse_args()))
