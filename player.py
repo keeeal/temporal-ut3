@@ -89,7 +89,7 @@ def play(params=None, display=True):
         end_value = game.is_over()
 
         if end_value:
-            if display: game.display()
+            if display: game.flip().display()
             if player is human:
                 print('You won!')
             else:
