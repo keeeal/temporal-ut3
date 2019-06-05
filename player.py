@@ -11,7 +11,7 @@ class ModelPlayer:
         self.model.eval()
         return self.get_action_and_value(game, epsilon)[0]
 
-    def get_action_and_value(self, game, epsilon=0):
+    def get_action_and_value(self, game, epsilon):
         actions = game.get_valid_actions()
         random.shuffle(actions)
         next_states = []

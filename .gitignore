@@ -1,5 +1,7 @@
 results/
 *.params
+plot.py
+*.png
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

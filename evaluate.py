@@ -1,12 +1,12 @@
 
-from copy import copy
+from copy import deepcopy
 from progress.bar import Bar
 
 from model import Model
 from game import Game
 from player import *
 
-def make_model_player(params=None):
+def load_player(params=None):
     model = Model()
 
     if torch.cuda.is_available():
@@ -32,7 +32,7 @@ def ask(question):
         hint = ' (y/n)'
 
 def evaluate(player_i, player_j, games=2, display=False):
-    if player_i is player_j: player_j = copy(player_j)
+    if player_i is player_j: player_j = deepcopy(player_j)
     score = {player_i:0, player_j:0, None:0}
 
     for n in Bar('Evaluating').iter(range(games)):
@@ -65,29 +65,22 @@ def evaluate(player_i, player_j, games=2, display=False):
 
     return score[player_i], score[None], score[player_j]
 
+def make_player(identifier):
+    if identifier.endswith('.params'):
+        return load_player(identifier)
+    if identifier == 'model':
+        return load_player()
+    if identifier == 'random':
+        return RandomPlayer()
+    if identifier == 'greedy':
+        return GreedyPlayer()
+    if identifier == 'human':
+        return HumanPlayer()
+    raise ValueError('Unknown player identifier:' + identifier)
+
 def main(player_1, player_2, games=1, display=False):
-    if player_1.endswith('.params'):
-        player_1 = make_model_player(player_1)
-    elif player_1 == 'model':
-        player_1 = make_model_player()
-    elif player_1 == 'random':
-        player_1 = RandomPlayer()
-    elif player_1 == 'greedy':
-        player_1 = GreedyPlayer()
-    elif player_1 == 'human':
-        player_1 = HumanPlayer()
-
-    if player_2.endswith('.params'):
-        player_2 = make_model_player(player_2)
-    elif player_2 == 'model':
-        player_2 = make_model_player()
-    elif player_2 == 'random':
-        player_2 = RandomPlayer()
-    elif player_2 == 'greedy':
-        player_2 = GreedyPlayer()
-    elif player_2 == 'human':
-        player_2 = HumanPlayer()
-
+    player_1 = make_player(player_1)
+    player_2 = make_player(player_2)
     print(evaluate(player_1, player_2, games, display))
 
 if __name__ == '__main__':

@@ -5,7 +5,7 @@ from progress.bar import Bar
 
 from game import Game
 from model import Model
-from player import *
+from player import ModelPlayer, GreedyPlayer
 from evaluate import evaluate
 
 def self_play(player, games=1, alpha=0.2, epsilon=0.2, display=False):
@@ -93,7 +93,7 @@ def main(learn_rate, alpha, epsilon, seed=None):
 
     # make players
     model_player = ModelPlayer(model, device)
-    random_player = RandomPlayer()
+    opponent = GreedyPlayer()
 
     # keep track of the best model
     best_score = 0, 0, 0
@@ -116,7 +116,9 @@ def main(learn_rate, alpha, epsilon, seed=None):
         # get data from self play
         print()
         start = time.time()
-        new_data = self_play(model_player, 100, alpha, epsilon)
+        _epsilon = 0.8*epsilon*2**(-iteration/32) + 0.2*epsilon
+        print('Epsilon =', _epsilon)
+        new_data = self_play(model_player, 100, alpha, _epsilon)
         data = (data + new_data)[-data_limit:] if data_limit else new_data
         print('Time taken:', hms(time.time() - start))
         print('New data points:', len(new_data))
@@ -127,18 +129,18 @@ def main(learn_rate, alpha, epsilon, seed=None):
         train(model, data, lossfn, optimr, device, 10)
         print('Time taken:', hms(time.time() - start))
 
-        # evaluate against random player
+        # evaluate against opponent
         print()
         start = time.time()
-        score = evaluate(model_player, random_player, 100)
+        score = evaluate(model_player, opponent, 100)
         print('Time taken:', hms(time.time() - start))
         print('%d wins, %d draws, %d losses' % score)
 
 if __name__ == '__main__':
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--learn_rate', '-lr', type=float, default=5e-4)
+    parser.add_argument('--learn_rate', '-lr', type=float, default=1e-4)
     parser.add_argument('--alpha', '-a', type=float, default=0.2)
-    parser.add_argument('--epsilon', '-e', type=float, default=0.2)
+    parser.add_argument('--epsilon', '-e', type=float, default=0.5)
     parser.add_argument('--seed', type=int, default=None)
     main(**vars(parser.parse_args()))
