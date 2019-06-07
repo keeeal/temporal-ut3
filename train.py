@@ -5,10 +5,11 @@ from progress.bar import Bar
 
 from game import Game
 from model import Model
-from player import ModelPlayer, GreedyPlayer
+from player import ModelPlayer, RandomPlayer, GreedyPlayer
 from evaluate import evaluate
 
 def self_play(player, games=1, alpha=0.2, epsilon=0.2, display=False):
+    player.model.eval()
     data = []
 
     for n in Bar('Self play').iter(range(games)):
@@ -16,25 +17,23 @@ def self_play(player, games=1, alpha=0.2, epsilon=0.2, display=False):
 
         for m in count():
             if display: game.display()
-            action, v_prime = player.get_action_and_value(game, epsilon)
-
-            # update the value of the current state
-            state = torch.tensor([game.get_state()]).to(player.device)
-            value = player.model(state)
-            value = value + alpha * (v_prime - value)
-            data += [(s, value) for s in game.get_symmetries()]
-            data += [(-s, 1-value) for s in game.get_symmetries()]
-
-            game.execute_move(action)
-            end_value = game.is_over()
-
-            if end_value:
-                if display: game.display()
-                data += [(s, end_value) for s in game.get_symmetries()]
-                data += [(-s, 1-value) for s in game.get_symmetries()]
+            value = game.is_over()
+            if value:
+                for state in game.get_symmetries():
+                    data += [(state, value), (-state, 1-value)]
                 break
 
-            game.flip()
+            action, next_value = player.get_action_and_value(game, epsilon)
+
+            # update the value of the current state
+            state = game.get_state()
+            state = torch.tensor([state]).to(player.device)
+            value = player.model(state)
+            value = value + alpha * (next_value - value)
+
+            for state in game.get_symmetries():
+                data += [(state, value), (-state, 1-value)]
+            game.execute_move(action).flip()
 
     return data
 
@@ -93,7 +92,8 @@ def main(learn_rate, alpha, epsilon, seed=None):
 
     # make players
     model_player = ModelPlayer(model, device)
-    opponent = GreedyPlayer()
+    random_player = RandomPlayer()
+    greedy_player = GreedyPlayer()
 
     # keep track of the best model
     best_score = 0, 0, 0
@@ -129,10 +129,17 @@ def main(learn_rate, alpha, epsilon, seed=None):
         train(model, data, lossfn, optimr, device, 10)
         print('Time taken:', hms(time.time() - start))
 
-        # evaluate against opponent
-        print()
+        # evaluate against random
+        print('\nPlaying against random...')
         start = time.time()
-        score = evaluate(model_player, opponent, 100)
+        score = evaluate(model_player, random_player, 100)
+        print('Time taken:', hms(time.time() - start))
+        print('%d wins, %d draws, %d losses' % score)
+
+        # evaluate against greedy
+        print('\nPlaying against greedy...')
+        start = time.time()
+        score = evaluate(model_player, greedy_player, 100)
         print('Time taken:', hms(time.time() - start))
         print('%d wins, %d draws, %d losses' % score)
 
