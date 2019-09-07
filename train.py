@@ -116,9 +116,7 @@ def main(learn_rate, alpha, epsilon, seed=None):
         # get data from self play
         print()
         start = time.time()
-        _epsilon = 0.8*epsilon*2**(-iteration/32) + 0.2*epsilon
-        print('Epsilon =', _epsilon)
-        new_data = self_play(model_player, 100, alpha, _epsilon)
+        new_data = self_play(model_player, 100, alpha, epsilon)
         data = (data + new_data)[-data_limit:] if data_limit else new_data
         print('Time taken:', hms(time.time() - start))
         print('New data points:', len(new_data))
@@ -148,6 +146,6 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--learn_rate', '-lr', type=float, default=1e-4)
     parser.add_argument('--alpha', '-a', type=float, default=0.2)
-    parser.add_argument('--epsilon', '-e', type=float, default=0.5)
+    parser.add_argument('--epsilon', '-e', type=float, default=0.2)
     parser.add_argument('--seed', type=int, default=None)
     main(**vars(parser.parse_args()))
